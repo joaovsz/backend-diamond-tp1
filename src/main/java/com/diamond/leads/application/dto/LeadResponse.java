@@ -1,5 +1,6 @@
 package com.diamond.leads.application.dto;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -20,6 +21,8 @@ public record LeadResponse(
         boolean dailyCompleted,
         List<HistoryResponse> history) {
 
+    private static final DateTimeFormatter HISTORY_TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
     public static LeadResponse fromEntity(Lead lead) {
         return new LeadResponse(
                 lead.getId(),
@@ -34,13 +37,17 @@ public record LeadResponse(
                 lead.getPriority(),
                 lead.isDailyCompleted(),
                 lead.getHistory().stream()
-                        .map(entry -> new HistoryResponse(entry.getStatus(), entry.getNote(), entry.getTimestamp()))
+                        .map(entry -> new HistoryResponse(
+                                entry.getId(),
+                                entry.getStatus(),
+                                entry.getNote(),
+                                entry.getTimestamp().format(HISTORY_TIMESTAMP_FORMAT)))
                         .collect(Collectors.toList()));
     }
 
     public record ClientResponse(String cnpj, String name, String phone) {
     }
 
-    public record HistoryResponse(String status, String note, String timestamp) {
+    public record HistoryResponse(UUID id, String status, String note, String timestamp) {
     }
 }

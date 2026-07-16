@@ -6,13 +6,15 @@ import java.util.UUID;
 
 import org.hibernate.annotations.UuidGenerator;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -53,7 +55,7 @@ public class Lead {
     @Column(nullable = false)
     private boolean dailyCompleted;
 
-    @ElementCollection
+    @OneToMany(mappedBy = "lead", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<LeadHistoryEntry> history = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
@@ -157,6 +159,12 @@ public class Lead {
 
     public void setHistory(List<LeadHistoryEntry> history) {
         this.history = history;
+    }
+
+    public LeadHistoryEntry addHistoryEntry(String status, String note) {
+        LeadHistoryEntry entry = new LeadHistoryEntry(this, status, note);
+        this.history.add(entry);
+        return entry;
     }
 
     public LeadStatus getStatus() {

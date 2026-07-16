@@ -74,6 +74,11 @@ public class LeadController {
         return leadService.addHistory(id, request);
     }
 
+    @GetMapping("/{id}/history")
+    public List<LeadResponse.HistoryResponse> getHistory(@PathVariable UUID id) {
+        return leadService.findHistoryByLeadId(id);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         leadService.delete(id);

@@ -1,5 +1,6 @@
 package com.diamond.leads.application;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,19 +15,23 @@ import com.diamond.leads.application.dto.LeadHistoryRequest;
 import com.diamond.leads.application.dto.LeadResponse;
 import com.diamond.leads.application.dto.LeadUpdateRequest;
 import com.diamond.leads.domain.LeadClient;
-import com.diamond.leads.domain.LeadHistoryEntry;
 import com.diamond.leads.domain.Lead;
 import com.diamond.leads.domain.LeadStatus;
 import com.diamond.leads.infrastructure.persistence.repository.LeadRepository;
+import com.diamond.leads.infrastructure.persistence.repository.LeadHistoryRepository;
 
 @Service
 @Transactional
 public class LeadService implements ILeadService {
 
-    private final LeadRepository leadRepository;
+    private static final DateTimeFormatter HISTORY_TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
-    public LeadService(LeadRepository leadRepository) {
+    private final LeadRepository leadRepository;
+    private final LeadHistoryRepository leadHistoryRepository;
+
+    public LeadService(LeadRepository leadRepository, LeadHistoryRepository leadHistoryRepository) {
         this.leadRepository = leadRepository;
+        this.leadHistoryRepository = leadHistoryRepository;
     }
 
     @Override
@@ -57,7 +62,6 @@ public class LeadService implements ILeadService {
         lead.setAssignedBy("renata");
         lead.setPriority(getPriorityByDates(request.tboDate(), request.cvaDate()));
         lead.setDailyCompleted(false);
-        lead.setHistory(new java.util.ArrayList<LeadHistoryEntry>());
         lead.setStatus(LeadStatus.NOVO);
 
         Lead savedLead = leadRepository.save(lead);
@@ -92,11 +96,23 @@ public class LeadService implements ILeadService {
     @Override
     public LeadResponse addHistory(UUID id, LeadHistoryRequest request) {
         Lead lead = getLeadOrThrow(id);
-        String timestamp = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
-        lead.getHistory().add(new LeadHistoryEntry(request.status(), request.note().trim(), timestamp));
+        lead.addHistoryEntry(request.status(), request.note().trim());
         lead.setDailyCompleted(true);
         lead.setStatus(mapStatus(request.status()));
         return LeadResponse.fromEntity(leadRepository.save(lead));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<LeadResponse.HistoryResponse> findHistoryByLeadId(UUID id) {
+        getLeadOrThrow(id);
+        return leadHistoryRepository.findByLeadIdOrderByTimestampDesc(id).stream()
+                .map(entry -> new LeadResponse.HistoryResponse(
+                        entry.getId(),
+                        entry.getStatus(),
+                        entry.getNote(),
+                        entry.getTimestamp().format(HISTORY_TIMESTAMP_FORMAT)))
+                .toList();
     }
 
     @Override

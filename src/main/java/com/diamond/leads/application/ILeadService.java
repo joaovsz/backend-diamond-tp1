@@ -23,5 +23,7 @@ public interface ILeadService {
 
     LeadResponse addHistory(UUID id, LeadHistoryRequest request);
 
+    List<LeadResponse.HistoryResponse> findHistoryByLeadId(UUID id);
+
     void delete(UUID id);
 }
