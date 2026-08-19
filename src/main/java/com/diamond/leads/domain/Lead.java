@@ -43,6 +43,9 @@ public class Lead {
     @Embedded
     private LeadClient client;
 
+    @Column(name = "client_id", nullable = true)
+    private UUID clientId;
+
     @Column(nullable = true)
     private String assignedTo;
 
@@ -119,6 +122,14 @@ public class Lead {
 
     public void setClient(LeadClient client) {
         this.client = client;
+    }
+
+    public UUID getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(UUID clientId) {
+        this.clientId = clientId;
     }
 
     public String getAssignedTo() {

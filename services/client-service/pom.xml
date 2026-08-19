@@ -12,10 +12,10 @@
     </parent>
 
     <groupId>com.diamond</groupId>
-    <artifactId>backend-diamond-tp1</artifactId>
+    <artifactId>client-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>backend-diamond-tp1</name>
-    <description>API de gestão de leads de aviação</description>
+    <name>client-service</name>
+    <description>Microsserviço de cadastro mestre de clientes de aviação</description>
 
     <properties>
         <java.version>21</java.version>
@@ -48,17 +48,13 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-openfeign</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

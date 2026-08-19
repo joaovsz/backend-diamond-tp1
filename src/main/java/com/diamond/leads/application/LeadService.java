@@ -11,12 +11,14 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.diamond.leads.application.dto.LeadCreateRequest;
 import com.diamond.leads.application.dto.LeadAssignmentRequest;
+import com.diamond.leads.application.dto.LeadClientDetailsResponse;
 import com.diamond.leads.application.dto.LeadHistoryRequest;
 import com.diamond.leads.application.dto.LeadResponse;
 import com.diamond.leads.application.dto.LeadUpdateRequest;
 import com.diamond.leads.domain.LeadClient;
 import com.diamond.leads.domain.Lead;
 import com.diamond.leads.domain.LeadStatus;
+import com.diamond.leads.infrastructure.client.ClientIntegrationService;
 import com.diamond.leads.infrastructure.persistence.repository.LeadRepository;
 import com.diamond.leads.infrastructure.persistence.repository.LeadHistoryRepository;
 
@@ -28,10 +30,13 @@ public class LeadService implements ILeadService {
 
     private final LeadRepository leadRepository;
     private final LeadHistoryRepository leadHistoryRepository;
+    private final ClientIntegrationService clientIntegrationService;
 
-    public LeadService(LeadRepository leadRepository, LeadHistoryRepository leadHistoryRepository) {
+    public LeadService(LeadRepository leadRepository, LeadHistoryRepository leadHistoryRepository,
+            ClientIntegrationService clientIntegrationService) {
         this.leadRepository = leadRepository;
         this.leadHistoryRepository = leadHistoryRepository;
+        this.clientIntegrationService = clientIntegrationService;
     }
 
     @Override
@@ -64,6 +69,8 @@ public class LeadService implements ILeadService {
         lead.setDailyCompleted(false);
         lead.setStatus(LeadStatus.NOVO);
 
+        resolveClientId(lead);
+
         Lead savedLead = leadRepository.save(lead);
         return LeadResponse.fromEntity(savedLead);
     }
@@ -81,7 +88,15 @@ public class LeadService implements ILeadService {
         lead.setPriority(getPriorityByDates(request.tboDate(), request.cvaDate()));
         lead.setDailyCompleted(Boolean.TRUE.equals(request.dailyCompleted()));
 
+        resolveClientId(lead);
+
         return LeadResponse.fromEntity(leadRepository.save(lead));
+    }
+
+    private void resolveClientId(Lead lead) {
+        LeadClient client = lead.getClient();
+        clientIntegrationService.findOrCreateClient(client.getCnpj(), client.getName(), client.getPhone())
+                .ifPresent(dto -> lead.setClientId(dto.id()));
     }
 
     @Override
@@ -113,6 +128,21 @@ public class LeadService implements ILeadService {
                         entry.getNote(),
                         entry.getTimestamp().format(HISTORY_TIMESTAMP_FORMAT)))
                 .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public LeadClientDetailsResponse findClientDetails(UUID id) {
+        Lead lead = getLeadOrThrow(id);
+        LeadClient cached = lead.getClient();
+
+        if (lead.getClientId() == null) {
+            return LeadClientDetailsResponse.cachedOnly(cached, "SEM_CLIENT_ID");
+        }
+
+        return clientIntegrationService.findClientById(lead.getClientId())
+                .map(dto -> LeadClientDetailsResponse.enriched(cached, dto))
+                .orElseGet(() -> LeadClientDetailsResponse.cachedOnly(cached, "CLIENT_SERVICE_INDISPONIVEL"));
     }
 
     @Override

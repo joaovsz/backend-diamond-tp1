@@ -19,6 +19,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.diamond.leads.application.ILeadService;
 import com.diamond.leads.application.dto.LeadAssignmentRequest;
+import com.diamond.leads.application.dto.LeadClientDetailsResponse;
 import com.diamond.leads.application.dto.LeadCreateRequest;
 import com.diamond.leads.application.dto.LeadHistoryRequest;
 import com.diamond.leads.application.dto.LeadResponse;
@@ -77,6 +78,11 @@ public class LeadController {
     @GetMapping("/{id}/history")
     public List<LeadResponse.HistoryResponse> getHistory(@PathVariable UUID id) {
         return leadService.findHistoryByLeadId(id);
+    }
+
+    @GetMapping("/{id}/client")
+    public LeadClientDetailsResponse getClient(@PathVariable UUID id) {
+        return leadService.findClientDetails(id);
     }
 
     @DeleteMapping("/{id}")

@@ -3,6 +3,8 @@ package com.diamond.leads.application;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
@@ -11,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -21,6 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.diamond.leads.application.dto.LeadAssignmentRequest;
+import com.diamond.leads.application.dto.LeadClientDetailsResponse;
 import com.diamond.leads.application.dto.LeadCreateRequest;
 import com.diamond.leads.application.dto.LeadHistoryRequest;
 import com.diamond.leads.application.dto.LeadResponse;
@@ -28,6 +32,8 @@ import com.diamond.leads.domain.Lead;
 import com.diamond.leads.domain.LeadClient;
 import com.diamond.leads.domain.LeadHistoryEntry;
 import com.diamond.leads.domain.LeadStatus;
+import com.diamond.leads.infrastructure.client.ClientIntegrationService;
+import com.diamond.leads.infrastructure.client.dto.ClientDto;
 import com.diamond.leads.infrastructure.persistence.repository.LeadHistoryRepository;
 import com.diamond.leads.infrastructure.persistence.repository.LeadRepository;
 
@@ -40,8 +46,17 @@ class LeadServiceTest {
     @Mock
     private LeadHistoryRepository leadHistoryRepository;
 
+    @Mock
+    private ClientIntegrationService clientIntegrationService;
+
     @InjectMocks
     private LeadService leadService;
+
+    @BeforeEach
+    void setUp() {
+        lenient().when(clientIntegrationService.findOrCreateClient(anyString(), anyString(), anyString()))
+                .thenReturn(Optional.empty());
+    }
 
     @Test
     void findById_throwsNotFound_whenLeadDoesNotExist() {
@@ -129,6 +144,88 @@ class LeadServiceTest {
         LeadResponse response = leadService.create(request);
 
         assertThat(response.priority()).isEqualTo(expectedPriority);
+    }
+
+    @Test
+    void create_setsClientId_whenClientServiceRespondsSuccessfully() {
+        UUID clientId = UUID.randomUUID();
+        when(leadRepository.save(any(Lead.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(clientIntegrationService.findOrCreateClient(anyString(), anyString(), anyString()))
+                .thenReturn(Optional.of(new ClientDto(clientId, "00000000000000", "Cliente Teste",
+                        "11999990000", null, null, null, "01/01/2026 10:00")));
+
+        LeadCreateRequest request = new LeadCreateRequest(
+                "PP-TST", "TESTE 100", "TESTE",
+                LocalDate.now().plusDays(10).toString(),
+                LocalDate.now().plusDays(20).toString(),
+                new LeadCreateRequest.ClientRequest("00000000000000", "Cliente Teste", "11999990000"),
+                null);
+
+        LeadResponse response = leadService.create(request);
+
+        assertThat(response.clientId()).isEqualTo(clientId);
+    }
+
+    @Test
+    void create_leavesClientIdNull_whenClientServiceUnavailable() {
+        when(leadRepository.save(any(Lead.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        LeadCreateRequest request = new LeadCreateRequest(
+                "PP-TST", "TESTE 100", "TESTE",
+                LocalDate.now().plusDays(10).toString(),
+                LocalDate.now().plusDays(20).toString(),
+                new LeadCreateRequest.ClientRequest("00000000000000", "Cliente Teste", "11999990000"),
+                null);
+
+        LeadResponse response = leadService.create(request);
+
+        assertThat(response.clientId()).isNull();
+    }
+
+    @Test
+    void findClientDetails_returnsEnrichedData_whenClientServiceAvailable() {
+        Lead lead = existingLead();
+        UUID clientId = UUID.randomUUID();
+        lead.setClientId(clientId);
+        when(leadRepository.findById(lead.getId())).thenReturn(Optional.of(lead));
+        when(clientIntegrationService.findClientById(clientId))
+                .thenReturn(Optional.of(new ClientDto(clientId, "00000000000000", "Cliente Teste",
+                        "11999990000", "Executivo", 5, "Cliente estratégico", "01/01/2026 10:00")));
+
+        LeadClientDetailsResponse response = leadService.findClientDetails(lead.getId());
+
+        assertThat(response.enriched()).isTrue();
+        assertThat(response.unavailableReason()).isNull();
+        assertThat(response.marketSegment()).isEqualTo("Executivo");
+        assertThat(response.fleetSize()).isEqualTo(5);
+        assertThat(response.cnpj()).isEqualTo("00000000000000");
+    }
+
+    @Test
+    void findClientDetails_returnsCachedOnlyWithReason_whenLeadHasNoClientId() {
+        Lead lead = existingLead();
+        when(leadRepository.findById(lead.getId())).thenReturn(Optional.of(lead));
+
+        LeadClientDetailsResponse response = leadService.findClientDetails(lead.getId());
+
+        assertThat(response.enriched()).isFalse();
+        assertThat(response.unavailableReason()).isEqualTo("SEM_CLIENT_ID");
+        assertThat(response.marketSegment()).isNull();
+        assertThat(response.cnpj()).isEqualTo("00000000000000");
+    }
+
+    @Test
+    void findClientDetails_returnsCachedOnlyWithReason_whenClientServiceUnavailable() {
+        Lead lead = existingLead();
+        UUID clientId = UUID.randomUUID();
+        lead.setClientId(clientId);
+        when(leadRepository.findById(lead.getId())).thenReturn(Optional.of(lead));
+        when(clientIntegrationService.findClientById(clientId)).thenReturn(Optional.empty());
+
+        LeadClientDetailsResponse response = leadService.findClientDetails(lead.getId());
+
+        assertThat(response.enriched()).isFalse();
+        assertThat(response.unavailableReason()).isEqualTo("CLIENT_SERVICE_INDISPONIVEL");
     }
 
     private Lead existingLead() {

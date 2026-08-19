@@ -19,6 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.diamond.leads.application.ILeadService;
+import com.diamond.leads.application.dto.LeadClientDetailsResponse;
 import com.diamond.leads.application.dto.LeadResponse;
 
 @WebMvcTest(LeadController.class)
@@ -61,5 +62,34 @@ class LeadControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"status\":\"Fechado\",\"note\":\"\"}"))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getClient_returnsEnrichedDetails() throws Exception {
+        UUID leadId = UUID.randomUUID();
+        when(leadService.findClientDetails(leadId)).thenReturn(new LeadClientDetailsResponse(
+                "00000000000000", "Cliente Teste", "11999990000",
+                "Executivo", 5, "Cliente estratégico", true, null));
+
+        mockMvc.perform(get("/api/leads/{id}/client", leadId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.enriched").value(true))
+                .andExpect(jsonPath("$.unavailableReason").doesNotExist())
+                .andExpect(jsonPath("$.marketSegment").value("Executivo"))
+                .andExpect(jsonPath("$.fleetSize").value(5));
+    }
+
+    @Test
+    void getClient_returnsCachedOnlyWhenServiceUnavailable() throws Exception {
+        UUID leadId = UUID.randomUUID();
+        when(leadService.findClientDetails(leadId)).thenReturn(new LeadClientDetailsResponse(
+                "00000000000000", "Cliente Teste", "11999990000",
+                null, null, null, false, "CLIENT_SERVICE_INDISPONIVEL"));
+
+        mockMvc.perform(get("/api/leads/{id}/client", leadId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.enriched").value(false))
+                .andExpect(jsonPath("$.unavailableReason").value("CLIENT_SERVICE_INDISPONIVEL"))
+                .andExpect(jsonPath("$.marketSegment").doesNotExist());
     }
 }
