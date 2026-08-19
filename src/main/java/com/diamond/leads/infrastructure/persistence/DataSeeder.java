@@ -7,15 +7,18 @@ import org.springframework.stereotype.Component;
 
 import com.diamond.leads.domain.Lead;
 import com.diamond.leads.domain.LeadClient;
+import com.diamond.leads.infrastructure.client.ClientIntegrationService;
 import com.diamond.leads.infrastructure.persistence.repository.LeadRepository;
 
 @Component
 public class DataSeeder implements CommandLineRunner {
 
     private final LeadRepository leadRepository;
+    private final ClientIntegrationService clientIntegrationService;
 
-    public DataSeeder(LeadRepository leadRepository) {
+    public DataSeeder(LeadRepository leadRepository, ClientIntegrationService clientIntegrationService) {
         this.leadRepository = leadRepository;
+        this.clientIntegrationService = clientIntegrationService;
     }
 
     @Override
@@ -53,6 +56,8 @@ public class DataSeeder implements CommandLineRunner {
         lead.setTboDate(tboDate);
         lead.setCvaDate(cvaDate);
         lead.setClient(new LeadClient(cnpj, clientName, phone));
+        clientIntegrationService.findOrCreateClient(cnpj, clientName, phone)
+                .ifPresent(client -> lead.setClientId(client.id()));
         lead.setAssignedTo(assignedTo);
         lead.setAssignedBy(assignedBy);
         lead.setPriority(priority);
