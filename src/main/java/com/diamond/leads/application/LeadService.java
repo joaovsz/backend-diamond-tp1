@@ -1,5 +1,6 @@
 package com.diamond.leads.application;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
@@ -19,6 +20,10 @@ import com.diamond.leads.domain.LeadClient;
 import com.diamond.leads.domain.Lead;
 import com.diamond.leads.domain.LeadStatus;
 import com.diamond.leads.infrastructure.client.ClientIntegrationService;
+import com.diamond.leads.infrastructure.messaging.LeadEventPublisher;
+import com.diamond.leads.infrastructure.messaging.event.LeadAssignedEvent;
+import com.diamond.leads.infrastructure.messaging.event.LeadClientResolveCommand;
+import com.diamond.leads.infrastructure.messaging.event.LeadStatusChangedEvent;
 import com.diamond.leads.infrastructure.persistence.repository.LeadRepository;
 import com.diamond.leads.infrastructure.persistence.repository.LeadHistoryRepository;
 
@@ -31,12 +36,14 @@ public class LeadService implements ILeadService {
     private final LeadRepository leadRepository;
     private final LeadHistoryRepository leadHistoryRepository;
     private final ClientIntegrationService clientIntegrationService;
+    private final LeadEventPublisher leadEventPublisher;
 
     public LeadService(LeadRepository leadRepository, LeadHistoryRepository leadHistoryRepository,
-            ClientIntegrationService clientIntegrationService) {
+            ClientIntegrationService clientIntegrationService, LeadEventPublisher leadEventPublisher) {
         this.leadRepository = leadRepository;
         this.leadHistoryRepository = leadHistoryRepository;
         this.clientIntegrationService = clientIntegrationService;
+        this.leadEventPublisher = leadEventPublisher;
     }
 
     @Override
@@ -69,9 +76,16 @@ public class LeadService implements ILeadService {
         lead.setDailyCompleted(false);
         lead.setStatus(LeadStatus.NOVO);
 
-        resolveClientId(lead);
-
         Lead savedLead = leadRepository.save(lead);
+
+        // Command Message: pede ao client-service que resolva o cliente (assíncrono via RabbitMQ)
+        leadEventPublisher.publishClientResolveCommand(
+                new LeadClientResolveCommand(
+                        savedLead.getId(),
+                        request.client().cnpj(),
+                        request.client().name(),
+                        request.client().phone()));
+
         return LeadResponse.fromEntity(savedLead);
     }
 
@@ -88,15 +102,17 @@ public class LeadService implements ILeadService {
         lead.setPriority(getPriorityByDates(request.tboDate(), request.cvaDate()));
         lead.setDailyCompleted(Boolean.TRUE.equals(request.dailyCompleted()));
 
-        resolveClientId(lead);
+        Lead saved = leadRepository.save(lead);
 
-        return LeadResponse.fromEntity(leadRepository.save(lead));
-    }
+        // Command Message: resolve cliente de forma assíncrona via RabbitMQ
+        leadEventPublisher.publishClientResolveCommand(
+                new LeadClientResolveCommand(
+                        saved.getId(),
+                        request.client().cnpj(),
+                        request.client().name(),
+                        request.client().phone()));
 
-    private void resolveClientId(Lead lead) {
-        LeadClient client = lead.getClient();
-        clientIntegrationService.findOrCreateClient(client.getCnpj(), client.getName(), client.getPhone())
-                .ifPresent(dto -> lead.setClientId(dto.id()));
+        return LeadResponse.fromEntity(saved);
     }
 
     @Override
@@ -105,16 +121,39 @@ public class LeadService implements ILeadService {
         lead.setAssignedTo(normalizeOptionalText(request.assignedTo()));
         lead.setAssignedBy(normalizeOptionalText(request.assignedBy()) == null ? "renata" : request.assignedBy().trim());
         lead.setDailyCompleted(false);
-        return LeadResponse.fromEntity(leadRepository.save(lead));
+        Lead saved = leadRepository.save(lead);
+
+        // Event Notification: notifica atribuição de lead
+        leadEventPublisher.publishLeadAssigned(
+                new LeadAssignedEvent(
+                        saved.getId(),
+                        saved.getPrefix(),
+                        saved.getAssignedTo(),
+                        saved.getAssignedBy(),
+                        LocalDateTime.now().toString()));
+
+        return LeadResponse.fromEntity(saved);
     }
 
     @Override
     public LeadResponse addHistory(UUID id, LeadHistoryRequest request) {
         Lead lead = getLeadOrThrow(id);
+        String oldStatus = lead.getStatus().name();
         lead.addHistoryEntry(request.status(), request.note().trim());
         lead.setDailyCompleted(true);
         lead.setStatus(mapStatus(request.status()));
-        return LeadResponse.fromEntity(leadRepository.save(lead));
+        Lead saved = leadRepository.save(lead);
+
+        // Event Notification: notifica mudança de status
+        leadEventPublisher.publishStatusChanged(
+                new LeadStatusChangedEvent(
+                        saved.getId(),
+                        saved.getPrefix(),
+                        oldStatus,
+                        saved.getStatus().name(),
+                        LocalDateTime.now().toString()));
+
+        return LeadResponse.fromEntity(saved);
     }
 
     @Override
@@ -140,6 +179,7 @@ public class LeadService implements ILeadService {
             return LeadClientDetailsResponse.cachedOnly(cached, "SEM_CLIENT_ID");
         }
 
+        // Query síncrona via Feign — mantida para consultas que precisam de resposta imediata
         return clientIntegrationService.findClientById(lead.getClientId())
                 .map(dto -> LeadClientDetailsResponse.enriched(cached, dto))
                 .orElseGet(() -> LeadClientDetailsResponse.cachedOnly(cached, "CLIENT_SERVICE_INDISPONIVEL"));

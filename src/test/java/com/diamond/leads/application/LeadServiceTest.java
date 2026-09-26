@@ -4,7 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
@@ -34,6 +36,7 @@ import com.diamond.leads.domain.LeadHistoryEntry;
 import com.diamond.leads.domain.LeadStatus;
 import com.diamond.leads.infrastructure.client.ClientIntegrationService;
 import com.diamond.leads.infrastructure.client.dto.ClientDto;
+import com.diamond.leads.infrastructure.messaging.LeadEventPublisher;
 import com.diamond.leads.infrastructure.persistence.repository.LeadHistoryRepository;
 import com.diamond.leads.infrastructure.persistence.repository.LeadRepository;
 
@@ -49,14 +52,11 @@ class LeadServiceTest {
     @Mock
     private ClientIntegrationService clientIntegrationService;
 
+    @Mock
+    private LeadEventPublisher leadEventPublisher;
+
     @InjectMocks
     private LeadService leadService;
-
-    @BeforeEach
-    void setUp() {
-        lenient().when(clientIntegrationService.findOrCreateClient(anyString(), anyString(), anyString()))
-                .thenReturn(Optional.empty());
-    }
 
     @Test
     void findById_throwsNotFound_whenLeadDoesNotExist() {
@@ -147,12 +147,8 @@ class LeadServiceTest {
     }
 
     @Test
-    void create_setsClientId_whenClientServiceRespondsSuccessfully() {
-        UUID clientId = UUID.randomUUID();
+    void create_publishesClientResolveCommand() {
         when(leadRepository.save(any(Lead.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(clientIntegrationService.findOrCreateClient(anyString(), anyString(), anyString()))
-                .thenReturn(Optional.of(new ClientDto(clientId, "00000000000000", "Cliente Teste",
-                        "11999990000", null, null, null, "01/01/2026 10:00")));
 
         LeadCreateRequest request = new LeadCreateRequest(
                 "PP-TST", "TESTE 100", "TESTE",
@@ -161,13 +157,16 @@ class LeadServiceTest {
                 new LeadCreateRequest.ClientRequest("00000000000000", "Cliente Teste", "11999990000"),
                 null);
 
-        LeadResponse response = leadService.create(request);
+        leadService.create(request);
 
-        assertThat(response.clientId()).isEqualTo(clientId);
+        verify(leadEventPublisher).publishClientResolveCommand(
+                argThat(cmd -> cmd.cnpj().equals("00000000000000")
+                        && cmd.name().equals("Cliente Teste")
+                        && cmd.phone().equals("11999990000")));
     }
 
     @Test
-    void create_leavesClientIdNull_whenClientServiceUnavailable() {
+    void create_doesNotSetClientIdSynchronously() {
         when(leadRepository.save(any(Lead.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         LeadCreateRequest request = new LeadCreateRequest(
@@ -179,7 +178,36 @@ class LeadServiceTest {
 
         LeadResponse response = leadService.create(request);
 
+        // clientId é preenchido assincronamente via evento client.resolved
         assertThat(response.clientId()).isNull();
+    }
+
+    @Test
+    void addHistory_publishesStatusChangedEvent() {
+        Lead lead = existingLead();
+        when(leadRepository.findById(lead.getId())).thenReturn(Optional.of(lead));
+        when(leadRepository.save(lead)).thenReturn(lead);
+
+        leadService.addHistory(lead.getId(), new LeadHistoryRequest("Fechado", "Negócio fechado"));
+
+        verify(leadEventPublisher).publishStatusChanged(
+                argThat(event -> event.leadId().equals(lead.getId())
+                        && event.oldStatus().equals("NOVO")
+                        && event.newStatus().equals("FECHADO")));
+    }
+
+    @Test
+    void assignLead_publishesLeadAssignedEvent() {
+        Lead lead = existingLead();
+        when(leadRepository.findById(lead.getId())).thenReturn(Optional.of(lead));
+        when(leadRepository.save(lead)).thenReturn(lead);
+
+        leadService.assignLead(lead.getId(), new LeadAssignmentRequest("v3", "renata"));
+
+        verify(leadEventPublisher).publishLeadAssigned(
+                argThat(event -> event.leadId().equals(lead.getId())
+                        && event.assignedTo().equals("v3")
+                        && event.assignedBy().equals("renata")));
     }
 
     @Test

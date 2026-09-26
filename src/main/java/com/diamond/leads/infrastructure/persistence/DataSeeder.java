@@ -7,18 +7,19 @@ import org.springframework.stereotype.Component;
 
 import com.diamond.leads.domain.Lead;
 import com.diamond.leads.domain.LeadClient;
-import com.diamond.leads.infrastructure.client.ClientIntegrationService;
+import com.diamond.leads.infrastructure.messaging.LeadEventPublisher;
+import com.diamond.leads.infrastructure.messaging.event.LeadClientResolveCommand;
 import com.diamond.leads.infrastructure.persistence.repository.LeadRepository;
 
 @Component
 public class DataSeeder implements CommandLineRunner {
 
     private final LeadRepository leadRepository;
-    private final ClientIntegrationService clientIntegrationService;
+    private final LeadEventPublisher leadEventPublisher;
 
-    public DataSeeder(LeadRepository leadRepository, ClientIntegrationService clientIntegrationService) {
+    public DataSeeder(LeadRepository leadRepository, LeadEventPublisher leadEventPublisher) {
         this.leadRepository = leadRepository;
-        this.clientIntegrationService = clientIntegrationService;
+        this.leadEventPublisher = leadEventPublisher;
     }
 
     @Override
@@ -45,7 +46,14 @@ public class DataSeeder implements CommandLineRunner {
             createLead("PR-NAV", "CITATION XLS+", "JATO LEVE", "2026-11-15", "2026-11-29", "55667788000199", "Navega Aero", "11987654321", "v1", "renata", "normal", false,
                 "Sem sucesso", "Sem retorno após envio de apresentação institucional"));
 
-        leadRepository.saveAll(seeds);
+        List<Lead> savedSeeds = leadRepository.saveAll(seeds);
+
+        // Publica comandos de resolução de cliente via RabbitMQ (assíncrono)
+        savedSeeds.forEach(lead -> {
+            LeadClient client = lead.getClient();
+            leadEventPublisher.publishClientResolveCommand(
+                    new LeadClientResolveCommand(lead.getId(), client.getCnpj(), client.getName(), client.getPhone()));
+        });
     }
 
     private Lead createLead(String prefix, String model, String typeLabel, String tboDate, String cvaDate, String cnpj, String clientName, String phone, String assignedTo, String assignedBy, String priority, boolean dailyCompleted, String historyStatus, String historyNote) {
@@ -56,8 +64,6 @@ public class DataSeeder implements CommandLineRunner {
         lead.setTboDate(tboDate);
         lead.setCvaDate(cvaDate);
         lead.setClient(new LeadClient(cnpj, clientName, phone));
-        clientIntegrationService.findOrCreateClient(cnpj, clientName, phone)
-                .ifPresent(client -> lead.setClientId(client.id()));
         lead.setAssignedTo(assignedTo);
         lead.setAssignedBy(assignedBy);
         lead.setPriority(priority);
