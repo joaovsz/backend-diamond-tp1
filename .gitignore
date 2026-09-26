@@ -5,4 +5,7 @@ data/
 .vscode/
 .DS_Store
 *.log
+logs/
+.pids/
 .mvn/wrapper/maven-wrapper.jar
+docs/
