@@ -1,0 +1,23 @@
+sequenceDiagram
+    participant FE as Frontend (ClientProfileModal)
+    participant LC as LeadController
+    participant LS as LeadService
+    participant CIS as ClientIntegrationService
+    participant CC as client-service
+
+    FE->>LC: GET /api/leads/{id}/client
+    LC->>LS: findClientDetails(id)
+    alt lead.clientId == null
+        LS-->>LC: LeadClientDetailsResponse.cachedOnly(cached, "SEM_CLIENT_ID")
+    else lead.clientId != null
+        LS->>CIS: findClientById(clientId)
+        alt client-service responde
+            CIS->>CC: GET /api/clients/{id}
+            CC-->>CIS: ClientResponse
+            LS-->>LC: LeadClientDetailsResponse.enriched(cached, dto)
+        else client-service indisponível
+            LS-->>LC: LeadClientDetailsResponse.cachedOnly(cached, "CLIENT_SERVICE_INDISPONIVEL")
+        end
+    end
+    LC-->>FE: 200 LeadClientDetailsResponse { enriched, unavailableReason, ... }
+    FE->>FE: enriched=false → exibe aviso, mantém cnpj/name/phone cacheados

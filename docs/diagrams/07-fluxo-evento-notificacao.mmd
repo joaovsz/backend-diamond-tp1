@@ -1,0 +1,36 @@
+sequenceDiagram
+    participant FE as Frontend
+    participant LC as LeadController
+    participant LS as LeadService
+    participant LEP as LeadEventPublisher
+    participant RMQ as RabbitMQ
+    participant LNL as LeadNotificationListener
+
+    Note over FE,LNL: Fluxo 1: Mudança de status via histórico
+
+    FE->>LC: POST /api/leads/{id}/history (status, note)
+    LC->>LS: addHistory(id, request)
+    LS->>LS: lead.addHistoryEntry(status, note)
+    LS->>LS: lead.setStatus(mapStatus(status))
+    LS->>LS: leadRepository.save(lead)
+    LS->>LEP: publishStatusChanged(leadId, prefix, NOVO, FECHADO, timestamp)
+    LEP->>RMQ: convertAndSend("lead.events", "lead.status-changed", event)
+    LS-->>LC: LeadResponse
+    LC-->>FE: 200 OK
+
+    RMQ->>LNL: Deliver LeadStatusChangedEvent
+    LNL->>LNL: Log "[NOTIFICAÇÃO] Lead mudou de status"
+
+    Note over FE,LNL: Fluxo 2: Atribuição de lead
+
+    FE->>LC: POST /api/leads/{id}/assignment (assignedTo, assignedBy)
+    LC->>LS: assignLead(id, request)
+    LS->>LS: lead.setAssignedTo(assignedTo)
+    LS->>LS: leadRepository.save(lead)
+    LS->>LEP: publishLeadAssigned(leadId, prefix, assignedTo, assignedBy, timestamp)
+    LEP->>RMQ: convertAndSend("lead.events", "lead.assigned", event)
+    LS-->>LC: LeadResponse
+    LC-->>FE: 200 OK
+
+    RMQ->>LNL: Deliver LeadAssignedEvent
+    LNL->>LNL: Log "[NOTIFICAÇÃO] Lead atribuído a vendedor"

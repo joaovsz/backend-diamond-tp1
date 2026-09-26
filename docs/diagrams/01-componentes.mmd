@@ -1,0 +1,16 @@
+flowchart TB
+    FE["Frontend React<br/>diamond-aviacao-leads<br/>:5173"]
+
+    subgraph SERVICOS["Serviços de aplicação"]
+        direction LR
+        MONO["Monólito<br/>backend-diamond-tp1<br/>:8080"]
+        CLI["Client Service<br/>com.diamond.clients<br/>:8081"]
+    end
+
+    EUR["Eureka Server<br/>discovery-server<br/>:8761"]
+
+    FE -- "REST: /api/leads/*<br/>(CRUD de leads, histórico,<br/>GET /leads/{id}/client)" --> MONO
+    FE -- "REST: /api/clients/*<br/>(tela de admin de clientes)" --> CLI
+    MONO -- "Feign: find-or-create,<br/>GET /clients/{id}<br/>(nome lógico client-service)" --> CLI
+    MONO -. registra-se .-> EUR
+    CLI -. registra-se .-> EUR

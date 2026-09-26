@@ -1,0 +1,28 @@
+sequenceDiagram
+    participant FE as Frontend
+    participant LC as LeadController
+    participant LS as LeadService
+    participant CIS as ClientIntegrationService
+    participant Feign as ClientServiceClient (Feign)
+    participant Eureka as Eureka Server
+    participant CC as ClientController (client-service)
+
+    FE->>LC: POST /api/leads (client: cnpj/name/phone)
+    LC->>LS: create(request)
+    LS->>CIS: findOrCreateClient(cnpj, name, phone)
+    CIS->>Feign: findOrCreate(request)
+    Feign->>Eureka: resolve "client-service"
+    Feign->>CC: POST /api/clients/find-or-create
+    alt client-service disponível
+        CC-->>Feign: 200 ClientResponse
+        Feign-->>CIS: ClientDto
+        CIS-->>LS: Optional.of(dto)
+        LS->>LS: lead.setClientId(dto.id())
+    else client-service indisponível / timeout
+        Feign-->>CIS: exceção
+        CIS->>CIS: log.warn(...)
+        CIS-->>LS: Optional.empty()
+        LS->>LS: clientId permanece null
+    end
+    LS-->>LC: LeadResponse (lead sempre salvo)
+    LC-->>FE: 201 Created

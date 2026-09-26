@@ -1,0 +1,35 @@
+flowchart LR
+    subgraph Exchanges
+        E1["lead.commands\n(Direct Exchange)"]
+        E2["lead.events\n(Topic Exchange)"]
+        E3["client.events\n(Topic Exchange)"]
+    end
+
+    subgraph Queues
+        Q1["client.resolve.queue"]
+        Q2["lead.notifications.queue"]
+        Q3["lead.client.resolved.queue"]
+    end
+
+    E1 -- "RK: lead.client.resolve" --> Q1
+    E2 -- "RK: lead.#" --> Q2
+    E3 -- "RK: client.resolved" --> Q3
+
+    subgraph Producers
+        P1["LeadService\n(lead-service)"]
+        P2["ClientResolveCommandListener\n(client-service)"]
+    end
+
+    subgraph Consumers
+        C1["ClientResolveCommandListener\n(client-service)"]
+        C2["LeadNotificationListener\n(lead-service)"]
+        C3["ClientResolvedEventListener\n(lead-service)"]
+    end
+
+    P1 --> E1
+    P1 --> E2
+    P2 --> E3
+
+    Q1 --> C1
+    Q2 --> C2
+    Q3 --> C3

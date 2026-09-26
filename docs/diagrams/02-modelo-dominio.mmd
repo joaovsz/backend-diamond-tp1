@@ -1,0 +1,22 @@
+erDiagram
+    LEADS ||--o{ LEAD_HISTORY : possui
+    LEADS {
+        uuid id PK
+        string client_cnpj
+        string client_name
+        string client_phone
+        uuid client_id "NOVO — referência lógica ao Client Service"
+        string priority
+        string status
+    }
+    CLIENTS {
+        uuid id PK
+        string cnpj UK
+        string name
+        string phone
+        string market_segment "NOVO — só existe no client-service"
+        integer fleet_size "NOVO"
+        string commercial_notes "NOVO"
+        timestamp created_at
+    }
+    LEADS }o..o{ CLIENTS : "referência lógica via clientId (sem FK de banco — bancos distintos)"

@@ -1,0 +1,14 @@
+sequenceDiagram
+    participant FE as Frontend
+    participant LS as LeadService
+    participant CIS as ClientIntegrationService
+    participant CS as ClientService
+
+    FE->>LS: POST /api/leads
+    LS->>CIS: findOrCreateClient(cnpj, name, phone)
+    CIS->>CS: HTTP POST /api/clients/find-or-create
+    Note over CIS,CS: BLOQUEANTE — espera resposta
+    CS-->>CIS: ClientResponse
+    CIS-->>LS: Optional.of(dto)
+    LS->>LS: lead.setClientId(dto.id())
+    LS-->>FE: 201 Created (com clientId)

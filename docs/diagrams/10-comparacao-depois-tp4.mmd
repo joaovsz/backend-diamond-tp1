@@ -1,0 +1,17 @@
+sequenceDiagram
+    participant FE as Frontend
+    participant LS as LeadService
+    participant RMQ as RabbitMQ
+    participant CS as ClientService
+
+    FE->>LS: POST /api/leads
+    LS->>LS: leadRepository.save(lead)
+    LS->>RMQ: Publish lead.client.resolve
+    LS-->>FE: 201 Created (sem clientId — eventual)
+
+    Note over RMQ,CS: ASSÍNCRONO
+    RMQ->>CS: Deliver command
+    CS->>CS: findOrCreate(cnpj, name, phone)
+    CS->>RMQ: Publish client.resolved
+    RMQ->>LS: Deliver event
+    LS->>LS: lead.setClientId(clientId)

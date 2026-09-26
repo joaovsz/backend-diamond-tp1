@@ -1,0 +1,26 @@
+flowchart TB
+    FE["Frontend React<br/>diamond-aviacao-leads<br/>:5173"]
+
+    subgraph INFRA["Infraestrutura"]
+        RMQ["RabbitMQ<br/>:5672 / :15672"]
+        EUR["Eureka Server<br/>:8761"]
+    end
+
+    subgraph SERVICOS["Serviços de Aplicação"]
+        direction LR
+        LEAD["Lead Service<br/>backend-diamond-tp1<br/>:8080"]
+        CLI["Client Service<br/>client-service<br/>:8081"]
+    end
+
+    FE -- "REST: /api/leads/*" --> LEAD
+    FE -- "REST: /api/clients/*" --> CLI
+
+    LEAD -- "Publica comandos e eventos" --> RMQ
+    RMQ -- "Consome client.resolved" --> LEAD
+
+    CLI -- "Publica client.resolved" --> RMQ
+    RMQ -- "Consome lead.client.resolve" --> CLI
+
+    LEAD -. "Feign (query síncrona)<br/>GET /clients/{id}" .-> CLI
+    LEAD -. registra-se .-> EUR
+    CLI -. registra-se .-> EUR

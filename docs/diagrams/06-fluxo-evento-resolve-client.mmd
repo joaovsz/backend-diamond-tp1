@@ -1,0 +1,29 @@
+sequenceDiagram
+    participant FE as Frontend
+    participant LC as LeadController
+    participant LS as LeadService
+    participant LEP as LeadEventPublisher
+    participant RMQ as RabbitMQ
+    participant CRCL as ClientResolveCommandListener
+    participant CS as ClientService
+    participant CREL as ClientResolvedEventListener
+
+    FE->>LC: POST /api/leads (client: cnpj/name/phone)
+    LC->>LS: create(request)
+    LS->>LS: leadRepository.save(lead)
+    LS->>LEP: publishClientResolveCommand(leadId, cnpj, name, phone)
+    LEP->>RMQ: convertAndSend("lead.commands", "lead.client.resolve", command)
+    LS-->>LC: LeadResponse (sem clientId)
+    LC-->>FE: 201 Created
+
+    Note over RMQ: Processamento assíncrono
+
+    RMQ->>CRCL: Deliver LeadClientResolveCommand
+    CRCL->>CS: findOrCreate(cnpj, name, phone)
+    CS-->>CRCL: ClientResponse (clientId)
+    CRCL->>RMQ: convertAndSend("client.events", "client.resolved", event)
+
+    RMQ->>CREL: Deliver ClientResolvedEvent
+    CREL->>CREL: leadRepository.findById(leadId)
+    CREL->>CREL: lead.setClientId(clientId)
+    CREL->>CREL: leadRepository.save(lead)
