@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 620" width="1000" height="620">
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <defs>
+    <filter id="shadow-obs" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arr-blue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arr-pink" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#db2777"/>
+    </marker>
+    <marker id="arr-orange" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#ea580c"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="500" y="40" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="700" fill="#1e293b" text-anchor="middle">Observabilidade: Rastreamento Distribuido (Zipkin) e Logs Correlacionados</text>
+  <text x="500" y="65" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#64748b" text-anchor="middle">Micrometer Tracing Brave + OpenZipkin + Formato MDC (%X{traceId}, %X{spanId}) + Prometheus</text>
+
+  <!-- Container Box -->
+  <rect x="40" y="90" width="920" height="500" rx="12" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+
+  <!-- Step 1: User / Frontend -->
+  <g transform="translate(60, 130)" filter="url(#shadow-obs)">
+    <rect width="180" height="90" rx="8" fill="#ffffff" stroke="#3b82f6" stroke-width="1.5"/>
+    <text x="90" y="28" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="700" fill="#1e40af" text-anchor="middle">1. Requisicao Cliente</text>
+    <text x="12" y="55" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#475569">POST /api/leads</text>
+    <text x="12" y="72" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#64748b">Cadastro de novo Lead</text>
+  </g>
+
+  <!-- Arrow 1 to 2 -->
+  <line x1="240" y1="175" x2="300" y2="175" stroke="#2563eb" stroke-width="2" marker-end="url(#arr-blue)"/>
+
+  <!-- Step 2: Lead Service -->
+  <g transform="translate(305, 120)" filter="url(#shadow-obs)">
+    <rect width="280" height="150" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+    <rect width="280" height="28" rx="8" fill="#dbeafe"/>
+    <text x="140" y="19" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700" fill="#1e40af" text-anchor="middle">2. Lead Service (Origem do Trace)</text>
+    <text x="12" y="48" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#334155">Inicia TraceId: 4bf92f3577b34da6</text>
+    <text x="12" y="66" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#334155">SpanId Inicial: 00f067aa0ba902b7</text>
+    <text x="12" y="86" font-family="monospace" font-size="9.5" fill="#0f766e">INFO [backend-diamond-tp1, 4bf92..., 00f06...]</text>
+    <text x="12" y="104" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">Injeta Trace Context nos headers AMQP</text>
+    <text x="12" y="122" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#db2777">Envia span assincrono ao Zipkin</text>
+  </g>
+
+  <!-- Arrow 2 to 3 (RabbitMQ) -->
+  <line x1="445" y1="270" x2="445" y2="330" stroke="#ea580c" stroke-width="2" marker-end="url(#arr-orange)"/>
+
+  <!-- Step 3: RabbitMQ Broker with Message Context -->
+  <g transform="translate(305, 335)" filter="url(#shadow-obs)">
+    <rect width="280" height="100" rx="8" fill="#ffffff" stroke="#ea580c" stroke-width="1.5"/>
+    <rect width="280" height="26" rx="8" fill="#ffedd5"/>
+    <text x="140" y="18" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700" fill="#9a3412" text-anchor="middle">3. RabbitMQ Message Headers</text>
+    <text x="12" y="46" font-family="monospace" font-size="10" fill="#475569">X-B3-TraceId: 4bf92f3577b34da6</text>
+    <text x="12" y="64" font-family="monospace" font-size="10" fill="#475569">X-B3-SpanId: 5a7b8c9d0e1f2a3b</text>
+    <text x="12" y="82" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#64748b">Propagacao de Contexto via AMQP</text>
+  </g>
+
+  <!-- Arrow 3 to 4 (Client Service) -->
+  <line x1="585" y1="385" x2="655" y2="385" stroke="#ea580c" stroke-width="2" marker-end="url(#arr-orange)"/>
+
+  <!-- Step 4: Client Service -->
+  <g transform="translate(660, 310)" filter="url(#shadow-obs)">
+    <rect width="280" height="150" rx="8" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+    <rect width="280" height="28" rx="8" fill="#d1fae5"/>
+    <text x="140" y="19" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700" fill="#065f46" text-anchor="middle">4. Client Service (Consumidor)</text>
+    <text x="12" y="48" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#334155">Extrai TraceId: 4bf92f3577b34da6</text>
+    <text x="12" y="66" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#334155">Novo SpanId: 5a7b8c9d0e1f2a3b</text>
+    <text x="12" y="86" font-family="monospace" font-size="9.5" fill="#0f766e">INFO [client-service, 4bf92..., 5a7b...]</text>
+    <text x="12" y="104" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">Executa Find-or-Create e responde</text>
+    <text x="12" y="122" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#db2777">Envia span assincrono ao Zipkin</text>
+  </g>
+
+  <!-- Step 5: Zipkin Server UI Box -->
+  <g transform="translate(660, 120)" filter="url(#shadow-obs)">
+    <rect width="280" height="130" rx="8" fill="#ffffff" stroke="#db2777" stroke-width="2"/>
+    <rect width="280" height="28" rx="8" fill="#fdf2f8"/>
+    <text x="140" y="19" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700" fill="#9d174d" text-anchor="middle">5. Zipkin Server (Visualizacao)</text>
+    <text x="12" y="48" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#334155">Interface Web: http://localhost:9411</text>
+    <text x="12" y="68" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">Visao unificada da transacao ponta a ponta</text>
+    <text x="12" y="86" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#64748b">Calculo automatico de latencia por etapa</text>
+    <text x="12" y="104" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#10b981">Detecao instantanea de gargalos de rede</text>
+  </g>
+
+  <!-- Tracing arrows to Zipkin -->
+  <line x1="585" y1="185" x2="655" y2="185" stroke="#db2777" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#arr-pink)"/>
+  <line x1="800" y1="310" x2="800" y2="255" stroke="#db2777" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#arr-pink)"/>
+
+  <!-- Step 6: Prometheus Metrics -->
+  <g transform="translate(60, 310)" filter="url(#shadow-obs)">
+    <rect width="200" height="150" rx="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+    <rect width="200" height="26" rx="8" fill="#e0f2fe"/>
+    <text x="100" y="18" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" fill="#0369a1" text-anchor="middle">6. Metricas (Prometheus)</text>
+    <text x="10" y="46" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#334155">/actuator/prometheus</text>
+    <text x="10" y="64" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="9.5" fill="#64748b">jvm.memory.used</text>
+    <text x="10" y="80" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="9.5" fill="#64748b">http.server.requests</text>
+    <text x="10" y="96" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="9.5" fill="#64748b">hikaricp.connections</text>
+    <text x="10" y="112" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="9.5" fill="#64748b">process.cpu.usage</text>
+    <text x="10" y="132" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="9" fill="#0284c7">Base para alarmes e HPA</text>
+  </g>
+
+  <!-- Footer explanation -->
+  <g transform="translate(60, 490)">
+    <rect width="880" height="75" rx="6" fill="#f1f5f9" stroke="#cbd5e1"/>
+    <text x="15" y="22" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" fill="#1e293b">Correlacao de Logs e Rastreamento de Transacoes na Pratica:</text>
+    <text x="15" y="42" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5" fill="#475569">Mesmo sendo uma comunicacao assincrona distribuida via RabbitMQ, o mesmo TraceId trafega em todas as etapas.</text>
+    <text x="15" y="60" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5" fill="#475569">Ao buscar pelo TraceId no agregador de logs ou no Zipkin, o engenheiro de operacoes enxerga a jornada completa em segundos.</text>
+  </g>
+</svg>

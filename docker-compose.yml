@@ -1,4 +1,5 @@
 version: '3.8'
+
 services:
   rabbitmq:
     image: rabbitmq:3-management
@@ -11,6 +12,16 @@ services:
       RABBITMQ_DEFAULT_PASS: diamond123
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+
+  zipkin:
+    image: openzipkin/zipkin:latest
+    container_name: diamond-zipkin
+    ports:
+      - "9411:9411"
+    environment:
+      - STORAGE_TYPE=mem
+      - JAVA_OPTS=-Xms64m -Xmx192m -XX:+UseG1GC
+    mem_limit: 256m
 
 volumes:
   rabbitmq_data:

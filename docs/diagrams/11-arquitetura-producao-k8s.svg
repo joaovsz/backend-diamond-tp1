@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 620" width="1000" height="620">
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#3b82f6"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#10b981"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="500" y="40" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="700" fill="#1e293b" text-anchor="middle">Arquitetura de Implantacao em Producao no Kubernetes</text>
+  <text x="500" y="65" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#64748b" text-anchor="middle">Cluster Kubernetes - Namespace: diamond | Orquestracao, Probes e Escalabilidade</text>
+
+  <!-- External Traffic / Ingress -->
+  <rect x="50" y="90" width="900" height="500" rx="12" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="75" y="115" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="700" fill="#334155">Kubernetes Cluster (Namespace: diamond)</text>
+
+  <!-- Frontend Pod Box -->
+  <g transform="translate(80, 140)" filter="url(#shadow)">
+    <rect width="240" height="110" rx="8" fill="#ffffff" stroke="#3b82f6" stroke-width="1.5"/>
+    <rect width="240" height="28" rx="8" fill="#eff6ff"/>
+    <text x="120" y="19" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700" fill="#1d4ed8" text-anchor="middle">Frontend SPA (Nginx)</text>
+    <text x="12" y="50" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#475569">Deployment: frontend</text>
+    <text x="12" y="68" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#475569">Port: 80 | NodePort: 30000</text>
+    <text x="12" y="86" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#64748b">React 19 + Vite + Nginx Alpine</text>
+    <text x="12" y="100" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#10b981">Probes: Liveness &amp; Readiness</text>
+  </g>
+
+  <!-- Discovery Server Box -->
+  <g transform="translate(380, 140)" filter="url(#shadow)">
+    <rect width="240" height="110" rx="8" fill="#ffffff" stroke="#6366f1" stroke-width="1.5"/>
+    <rect width="240" height="28" rx="8" fill="#eef2ff"/>
+    <text x="120" y="19" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700" fill="#4338ca" text-anchor="middle">Discovery Server (Eureka)</text>
+    <text x="12" y="50" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#475569">Deployment: discovery-server</text>
+    <text x="12" y="68" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#475569">Port: 8761 | NodePort: 30761</text>
+    <text x="12" y="86" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#64748b">Service Registry &amp; Heartbeat</text>
+    <text x="12" y="100" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#10b981">Probes: /actuator/health/*</text>
+  </g>
+
+  <!-- Zipkin Server Box -->
+  <g transform="translate(680, 140)" filter="url(#shadow)">
+    <rect width="240" height="110" rx="8" fill="#ffffff" stroke="#ec4899" stroke-width="1.5"/>
+    <rect width="240" height="28" rx="8" fill="#fdf2f8"/>
+    <text x="120" y="19" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700" fill="#be185d" text-anchor="middle">Zipkin Tracing Server</text>
+    <text x="12" y="50" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#475569">Deployment: zipkin</text>
+    <text x="12" y="68" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#475569">Port: 9411 | NodePort: 31411</text>
+    <text x="12" y="86" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#64748b">Distributed Traces (Brave/Zipkin)</text>
+    <text x="12" y="100" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#10b981">HTTP /health probe</text>
+  </g>
+
+  <!-- Lead Service Box (Autoscaled) -->
+  <g transform="translate(80, 290)" filter="url(#shadow)">
+    <rect width="260" height="140" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+    <rect width="260" height="28" rx="8" fill="#dbeafe"/>
+    <text x="130" y="19" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700" fill="#1e40af" text-anchor="middle">Lead Service (CRM)</text>
+    <text x="12" y="50" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#475569">Replicas: 2 a 5 (HPA Autoscaling)</text>
+    <text x="12" y="68" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#475569">Port: 8080 | NodePort: 30080</text>
+    <text x="12" y="86" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#64748b">MDC Tracing + Micrometer Prometheus</text>
+    <text x="12" y="104" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#10b981">Probes: Liveness (45s), Readiness (30s)</text>
+    <text x="12" y="122" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#f59e0b">HPA Target: CPU 70% | Mem 80%</text>
+  </g>
+
+  <!-- RabbitMQ Box -->
+  <g transform="translate(380, 290)" filter="url(#shadow)">
+    <rect width="240" height="140" rx="8" fill="#ffffff" stroke="#f97316" stroke-width="1.5"/>
+    <rect width="240" height="28" rx="8" fill="#ffedd5"/>
+    <text x="120" y="19" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700" fill="#c2410c" text-anchor="middle">RabbitMQ Broker</text>
+    <text x="12" y="50" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#475569">Deployment: rabbitmq</text>
+    <text x="12" y="68" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#475569">AMQP: 5672 | Mgmt: 15672 (31672)</text>
+    <text x="12" y="86" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#64748b">Exchanges: diamond.events (Topic)</text>
+    <text x="12" y="104" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#64748b">Queues: lead.client.resolve.q, etc.</text>
+    <text x="12" y="122" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#10b981">Probes: TCP Socket Check</text>
+  </g>
+
+  <!-- Client Service Box (Autoscaled) -->
+  <g transform="translate(660, 290)" filter="url(#shadow)">
+    <rect width="260" height="140" rx="8" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+    <rect width="260" height="28" rx="8" fill="#d1fae5"/>
+    <text x="130" y="19" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700" fill="#047857" text-anchor="middle">Client Service (Catalogo)</text>
+    <text x="12" y="50" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#475569">Replicas: 2 a 4 (HPA Autoscaling)</text>
+    <text x="12" y="68" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#475569">Port: 8081 | NodePort: 30081</text>
+    <text x="12" y="86" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#64748b">MDC Tracing + Micrometer Prometheus</text>
+    <text x="12" y="104" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#10b981">Probes: Liveness (45s), Readiness (30s)</text>
+    <text x="12" y="122" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#f59e0b">HPA Target: CPU 70%</text>
+  </g>
+
+  <!-- Config & Secrets Bar -->
+  <g transform="translate(80, 470)" filter="url(#shadow)">
+    <rect width="840" height="90" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 4"/>
+    <text x="20" y="24" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700" fill="#334155">Gestao de Configuracao e Segredos (Kubernetes ConfigMap &amp; Secret)</text>
+    <text x="20" y="48" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#475569">ConfigMap diamond-config: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE, SPRING_RABBITMQ_HOST, MANAGEMENT_ZIPKIN_ENDPOINT</text>
+    <text x="20" y="68" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#475569">Secret diamond-secrets: SPRING_RABBITMQ_USERNAME, SPRING_RABBITMQ_PASSWORD</text>
+  </g>
+
+  <!-- Connectors -->
+  <!-- Lead Service to RabbitMQ -->
+  <line x1="340" y1="350" x2="376" y2="350" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrow)"/>
+  <!-- RabbitMQ to Client Service -->
+  <line x1="620" y1="350" x2="656" y2="350" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrow)"/>
+  <!-- Client Service to RabbitMQ (Response event) -->
+  <line x1="660" y1="380" x2="624" y2="380" stroke="#10b981" stroke-width="2" marker-end="url(#arrow-green)"/>
+  <!-- RabbitMQ to Lead Service (Consume event) -->
+  <line x1="380" y1="380" x2="344" y2="380" stroke="#10b981" stroke-width="2" marker-end="url(#arrow-green)"/>
+
+  <!-- Tracing lines to Zipkin -->
+  <path d="M 210 290 L 210 260 L 780 260 L 780 252" fill="none" stroke="#ec4899" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <path d="M 790 290 L 790 252" fill="none" stroke="#ec4899" stroke-width="1.5" stroke-dasharray="3 3"/>
+
+  <!-- Discovery lines to Eureka -->
+  <path d="M 230 290 L 230 270 L 480 270 L 480 252" fill="none" stroke="#6366f1" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <path d="M 770 290 L 770 270 L 520 270 L 520 252" fill="none" stroke="#6366f1" stroke-width="1.5" stroke-dasharray="3 3"/>
+
+</svg>

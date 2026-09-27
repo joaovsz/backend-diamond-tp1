@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 560" width="1000" height="560">
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <defs>
+    <filter id="shadow-cicd" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arr-flow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#3b82f6"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="500" y="40" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="700" fill="#1e293b" text-anchor="middle">Pipeline de CI/CD com GitHub Actions e GitOps</text>
+  <text x="500" y="65" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#64748b" text-anchor="middle">Automacao Completa: Testes Unitarios e Integrados, Build de Imagens Docker e Validacao Kubernetes</text>
+
+  <!-- Container Box -->
+  <rect x="40" y="90" width="920" height="440" rx="12" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+
+  <!-- Step 1: Git Trigger -->
+  <g transform="translate(65, 130)" filter="url(#shadow-cicd)">
+    <rect width="180" height="150" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.5"/>
+    <rect width="180" height="28" rx="8" fill="#f1f5f9"/>
+    <text x="90" y="19" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700" fill="#334155" text-anchor="middle">1. Git &amp; GitHub</text>
+    <text x="12" y="50" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="600" fill="#0f172a">Gatilhos do Workflow:</text>
+    <text x="12" y="70" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5" fill="#475569">Push: branch main</text>
+    <text x="12" y="88" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5" fill="#475569">Pull Request: main</text>
+    <text x="12" y="112" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#64748b">Controle de Versao Semantico</text>
+    <text x="12" y="130" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#2563eb">GitHub Actions Runner</text>
+  </g>
+
+  <!-- Connector 1 to 2 -->
+  <line x1="245" y1="205" x2="285" y2="205" stroke="#3b82f6" stroke-width="2" marker-end="url(#arr-flow)"/>
+
+  <!-- Step 2: Test & Verify Job -->
+  <g transform="translate(290, 130)" filter="url(#shadow-cicd)">
+    <rect width="200" height="150" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+    <rect width="200" height="28" rx="8" fill="#dbeafe"/>
+    <text x="100" y="19" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700" fill="#1e40af" text-anchor="middle">2. Job: Test &amp; Verify</text>
+    <text x="12" y="50" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5" fill="#334155">Setup Java 21 Temurin</text>
+    <text x="12" y="68" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5" fill="#334155">Cache ~/.m2 dependencies</text>
+    <text x="12" y="88" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#16a34a">Discovery Server (4 testes)</text>
+    <text x="12" y="104" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#16a34a">Client Service (20 testes)</text>
+    <text x="12" y="120" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#16a34a">Lead Service (36 testes)</text>
+    <text x="12" y="138" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="600" fill="#059669">Total: 60 testes automatizados</text>
+  </g>
+
+  <!-- Connector 2 to 3 -->
+  <line x1="490" y1="205" x2="525" y2="205" stroke="#3b82f6" stroke-width="2" marker-end="url(#arr-flow)"/>
+
+  <!-- Step 3: Container Build Job -->
+  <g transform="translate(530, 130)" filter="url(#shadow-cicd)">
+    <rect width="200" height="150" rx="8" fill="#ffffff" stroke="#0891b2" stroke-width="2"/>
+    <rect width="200" height="28" rx="8" fill="#cffafe"/>
+    <text x="100" y="19" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700" fill="#0e7490" text-anchor="middle">3. Job: Docker Build</text>
+    <text x="12" y="50" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5" fill="#334155">Docker Buildx (Multi-arch)</text>
+    <text x="12" y="68" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5" fill="#334155">Multi-Stage Dockerfiles</text>
+    <text x="12" y="88" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">Build: discovery-server</text>
+    <text x="12" y="104" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">Build: client-service</text>
+    <text x="12" y="120" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">Build: lead-service</text>
+    <text x="12" y="138" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#0891b2">Usuarios non-root + Alpine JRE</text>
+  </g>
+
+  <!-- Connector 3 to 4 -->
+  <line x1="730" y1="205" x2="765" y2="205" stroke="#3b82f6" stroke-width="2" marker-end="url(#arr-flow)"/>
+
+  <!-- Step 4: K8s Validate & Deploy -->
+  <g transform="translate(770, 130)" filter="url(#shadow-cicd)">
+    <rect width="170" height="150" rx="8" fill="#ffffff" stroke="#16a34a" stroke-width="2"/>
+    <rect width="170" height="28" rx="8" fill="#dcfce7"/>
+    <text x="85" y="19" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700" fill="#15803d" text-anchor="middle">4. Job: K8s Validation</text>
+    <text x="10" y="50" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5" fill="#334155">Kubectl / Schema Lint</text>
+    <text x="10" y="70" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">Valida 17 documentos</text>
+    <text x="10" y="88" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">Namespace &amp; Secrets</text>
+    <text x="10" y="104" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">Deployments &amp; Probes</text>
+    <text x="10" y="120" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" fill="#475569">HPA Autoscaling</text>
+    <text x="10" y="138" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="600" fill="#15803d">Status: Aprovado p/ Prod</text>
+  </g>
+
+  <!-- Bottom Details Grid -->
+  <g transform="translate(65, 310)">
+    <rect width="875" height="195" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="20" y="26" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="700" fill="#1e293b">Boas Praticas de Engenharia de Software Aplicadas na Automacao:</text>
+
+    <!-- Column 1 -->
+    <text x="20" y="55" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.5" font-weight="600" fill="#1e40af">Integracao Continua (CI)</text>
+    <text x="20" y="75" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5" fill="#475569">- Testes unitarios para regras de dominio e validacoes</text>
+    <text x="20" y="93" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5" fill="#475569">- Testes integrados com MockMvc e Spring Context</text>
+    <text x="20" y="111" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5" fill="#475569">- Verificacao rigorosa de Probes e Actuator</text>
+    <text x="20" y="129" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5" fill="#475569">- Nao permite merge de PRs com falha de teste</text>
+
+    <!-- Column 2 -->
+    <text x="320" y="55" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.5" font-weight="600" fill="#0891b2">Seguranca &amp; Conteinerizacao</text>
+    <text x="320" y="75" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5" fill="#475569">- Multi-stage build reduz superficie de ataque</text>
+    <text x="320" y="93" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5" fill="#475569">- JRE minimalista Alpine (sem compilador ou shell exposto)</text>
+    <text x="320" y="111" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5" fill="#475569">- Execucao sob usuario nao-root (appuser:appgroup)</text>
+    <text x="320" y="129" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5" fill="#475569">- Parametrizacao 100% via Variaveis de Ambiente</text>
+
+    <!-- Column 3 -->
+    <text x="610" y="55" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11.5" font-weight="600" fill="#15803d">Orquestracao &amp; GitOps (CD)</text>
+    <text x="610" y="75" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5" fill="#475569">- Manifestos declarativos versionados no Git</text>
+    <text x="610" y="93" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5" fill="#475569">- Probes de liveness e readiness garantem zero-downtime</text>
+    <text x="610" y="111" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5" fill="#475569">- Escalabilidade automatica com HPA (CPU e memoria)</text>
+    <text x="610" y="129" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5" fill="#475569">- Isolamento logico via Namespace diamond</text>
+  </g>
+</svg>

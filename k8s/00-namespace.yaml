@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: diamond
+  labels:
+    app.kubernetes.io/part-of: diamond-crm
+    environment: production
